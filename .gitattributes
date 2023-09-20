@@ -1,1 +1,1 @@
-filter=lfs diff=lfs merge=lfs -text
+*-HUGO.tsv filter=lfs diff=lfs merge=lfs -text
