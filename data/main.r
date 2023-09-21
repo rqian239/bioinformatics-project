@@ -1,8 +1,9 @@
+library(BiocManager)
 library(magrittr)
 library(org.Hs.eg.db)
-metadata <- readr::read_tsv("./SRP073813/metadata_SRP073813.tsv")
+metadata <- readr::read_tsv("./data/SRP073813/metadata_SRP073813.tsv")
 
-expression_df <- readr::read_tsv("./SRP073813/SRP073813.tsv") %>%
+expression_df <- readr::read_tsv("./data/SRP073813/SRP073813.tsv") %>%
   # Tuck away the Gene ID column as row names
   tibble::column_to_rownames("Gene")
 
@@ -22,6 +23,8 @@ mapped_list <- mapIds(
   column = "SYMBOL", # The type of gene identifiers you would like to map to
   multiVals = "list"
 )
+
+head(mapped_list)
 
 mapped_df <- mapped_list %>%
   tibble::enframe(name = "Ensembl", value = "HUGO") %>%
@@ -45,7 +48,7 @@ collapsed_mapped_df %>%
   head()
 
 final_mapped_df <- data.frame(
-  "first_mapped_entrez_id" = mapIds(
+  "first_mapped_hugo" = mapIds(
     org.Hs.eg.db, # Replace with annotation package for your organism
     keys = expression_df$Gene,
     keytype = "ENSEMBL", # Replace with the gene identifiers used in your data
