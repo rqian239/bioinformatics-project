@@ -1,4 +1,4 @@
-install.packages("data.table")
+# install.packages("data.table")
 library(data.table)
 
 # Load in the gene expression data that has already been mapped to HUGO
