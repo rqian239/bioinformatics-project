@@ -40,3 +40,33 @@ expression_df <- readr::read_tsv(data_file) %>%
 # 'RN7SK', 'SCHIP1', 'SEC16B', 'SERF1A', 'SFTA3', 'SLC35D2', 'SMN1', 'SPATA13', 'SPICE1', 'SRSF1', 'ST6GALNAC6', 'STXBP2', 
 # 'TAB2', 'TBC1D3', 'TBCE', 'TMSB15B', 'TUT1', 'USP17L8', 'ZNF177', 'ZNF280D', 'ZNF544', 'ZNF724', 'ZNF844'
 
+# Make the data in the order of the metadata
+expression_df <- expression_df %>%
+  dplyr::select(metadata$refinebio_accession_code)
+
+# Check if this is in the same order
+all.equal(colnames(expression_df), metadata$refinebio_accession_code)
+
+# Print the values we need for comparison
+head(metadata$refinebio_title)
+
+# Label the psychiatric disorder using the metadata
+metadata <- metadata %>%
+  dplyr::mutate(psy_disorder = dplyr::case_when(
+    stringr::str_detect(refinebio_title, "_C_") ~ "Control",
+    stringr::str_detect(refinebio_title, "_M_") ~ "Major Depression",
+    stringr::str_detect(refinebio_title, "_B_") ~ "Bipolar Disorder",
+    stringr::str_detect(refinebio_title, "_S_") ~ "Schizophrenia"
+  ))
+
+# Label brain region using the metadata
+metadata <- metadata %>%
+  dplyr::mutate(brain_region = dplyr::case_when(
+    stringr::str_detect(refinebio_title, "AnCg") ~ "Anterior Cingulate Cortex",
+    stringr::str_detect(refinebio_title, "nAcc") ~ "Nucleus Accumbens",
+    stringr::str_detect(refinebio_title, "DLPFC") ~ "Dorsolateral Prefrontal Cortex"
+  ))
+
+# Let's take a look at the original metadata column's info
+# and our new columns
+dplyr::select(metadata, refinebio_title, psy_disorder, brain_region)
