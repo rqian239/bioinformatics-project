@@ -51,12 +51,21 @@ all.equal(colnames(expression_df), metadata$refinebio_accession_code)
 head(metadata$refinebio_title)
 
 # Label the psychiatric disorder using the metadata
+
+# Comparing all 4 groups here?
+# metadata <- metadata %>%
+#   dplyr::mutate(psy_disorder = dplyr::case_when(
+#     stringr::str_detect(refinebio_title, "_C_") ~ "Control",
+#     stringr::str_detect(refinebio_title, "_M_") ~ "Major Depression",
+#     stringr::str_detect(refinebio_title, "_B_") ~ "Bipolar Disorder",
+#     stringr::str_detect(refinebio_title, "_S_") ~ "Schizophrenia"
+#   ))
+
+# Comparing control vs any disorder
 metadata <- metadata %>%
   dplyr::mutate(psy_disorder = dplyr::case_when(
     stringr::str_detect(refinebio_title, "_C_") ~ "Control",
-    stringr::str_detect(refinebio_title, "_M_") ~ "Major Depression",
-    stringr::str_detect(refinebio_title, "_B_") ~ "Bipolar Disorder",
-    stringr::str_detect(refinebio_title, "_S_") ~ "Schizophrenia"
+    TRUE ~ "Disorder"
   ))
 
 # Label brain region using the metadata
@@ -75,10 +84,19 @@ dplyr::select(metadata, refinebio_title, psy_disorder, brain_region)
 str(metadata$psy_disorder)
 
 # Make mutation_status a factor and set the levels appropriately
+
+# Comparing all 4 groups here?
+# metadata <- metadata %>%
+#   dplyr::mutate(
+#     # Here we define the values our factor variable can have and their order.
+#     psy_disorder = factor(psy_disorder, levels = c("Control", "Major Depression", "Bipolar Disorder", "Schizophrenia"))
+#   )
+
+# Comparing control vs any disorder
 metadata <- metadata %>%
   dplyr::mutate(
     # Here we define the values our factor variable can have and their order.
-    psy_disorder = factor(psy_disorder, levels = c("Control", "Major Depression", "Bipolar Disorder", "Schizophrenia"))
+    psy_disorder = factor(psy_disorder, levels = c("Control", "Disorder"))
   )
 
 # Check the levels
@@ -119,7 +137,7 @@ deseq_results <- results(deseq_object)
 # Obtain shrunken log fold change estimates based on negative binomial distribution
 deseq_results <- lfcShrink(
   deseq_object, # The original DESeq2 object after running DESeq()
-  coef = 4, # The log fold change coefficient used in DESeq()
+  coef = 2, # The log fold change coefficient used in DESeq()   NOTE: this is the coefficient is how many groups you have
   res = deseq_results # The original DESeq2 results table
 )
 
