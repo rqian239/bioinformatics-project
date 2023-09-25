@@ -106,9 +106,7 @@ levels(metadata$psy_disorder)
 # Define a minimum counts cutoff and filter the data to include
 # only rows (genes) that have total counts above the cutoff
 
-# 550 was defined because the instructions had 6 samples and a cutoff of 10 counts
-# We have 335 samples so 335 * 10/6 ~= 550
-min_counts <- 550
+min_counts <- 10
 
 # Filter the data
 filtered_expression_df <- expression_df %>%
@@ -183,5 +181,9 @@ volcano_plot <- EnhancedVolcano::EnhancedVolcano(
 
 # Print out plot here
 volcano_plot
+
+
+# Extract differentially expressed genes
+
 
   
