@@ -94,3 +94,55 @@ min_counts <- 550
 # Filter the data
 filtered_expression_df <- expression_df %>%
   dplyr::filter(rowSums(.) >= min_counts)
+
+# Creating a DESeq2DataSet
+
+# round all expression counts
+gene_matrix <- round(filtered_expression_df)
+
+# Create a DESeq2DataSet object
+ddset <- DESeqDataSetFromMatrix(
+  # Here we supply non-normalized count data
+  countData = gene_matrix,
+  # Supply the `colData` with our metadata data frame
+  colData = metadata,
+  # Supply our experimental variable to `design`
+  design = ~psy_disorder
+)
+
+# Run the differential expression analysis
+deseq_object <- DESeq(ddset)
+
+# Extract the results
+deseq_results <- results(deseq_object)
+
+# Obtain shrunken log fold change estimates based on negative binomial distribution
+deseq_results <- lfcShrink(
+  deseq_object, # The original DESeq2 object after running DESeq()
+  coef = 4, # The log fold change coefficient used in DESeq()
+  res = deseq_results # The original DESeq2 results table
+)
+
+# Print some of the results
+head(deseq_results)
+
+# Save results into dataframe
+deseq_df <- deseq_results %>%
+  # make into data.frame
+  as.data.frame() %>%
+  # the gene names are row names -- let's make them a column for easy display
+  tibble::rownames_to_column("Gene") %>%
+  # add a column for significance threshold results
+  dplyr::mutate(threshold = padj < 0.05) %>%
+  # sort by statistic -- the highest values will be genes with
+  # higher expression in RPL10 mutated samples
+  dplyr::arrange(dplyr::desc(log2FoldChange))
+
+  head(deseq_df)
+
+
+  # Plot one gene to show difference
+  plotCounts(ddset, gene = "CHI3L1", intgroup = "psy_disorder")
+
+
+  
