@@ -70,3 +70,27 @@ metadata <- metadata %>%
 # Let's take a look at the original metadata column's info
 # and our new columns
 dplyr::select(metadata, refinebio_title, psy_disorder, brain_region)
+
+# Print out a preview of `psy_disorder`
+str(metadata$psy_disorder)
+
+# Make mutation_status a factor and set the levels appropriately
+metadata <- metadata %>%
+  dplyr::mutate(
+    # Here we define the values our factor variable can have and their order.
+    psy_disorder = factor(psy_disorder, levels = c("Control", "Major Depression", "Bipolar Disorder", "Schizophrenia"))
+  )
+
+# Check the levels
+levels(metadata$psy_disorder)
+
+# Define a minimum counts cutoff and filter the data to include
+# only rows (genes) that have total counts above the cutoff
+
+# 550 was defined because the instructions had 6 samples and a cutoff of 10 counts
+# We have 335 samples so 335 * 10/6 ~= 550
+min_counts <- 550
+
+# Filter the data
+filtered_expression_df <- expression_df %>%
+  dplyr::filter(rowSums(.) >= min_counts)
