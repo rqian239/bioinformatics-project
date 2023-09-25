@@ -83,6 +83,7 @@ dplyr::select(metadata, refinebio_title, psy_disorder, brain_region)
 # Print out a preview of `psy_disorder`
 str(metadata$psy_disorder)
 
+
 # Make mutation_status a factor and set the levels appropriately
 
 # Comparing all 4 groups here?
@@ -169,5 +170,18 @@ deseq_df,
 "./results/SRP073813_diff_expr_results.tsv"
 )
 
+
+# CREATE VOLCANO PLOT
+
+volcano_plot <- EnhancedVolcano::EnhancedVolcano(
+  deseq_df,
+  lab = deseq_df$Gene,
+  x = "log2FoldChange",
+  y = "padj",
+  pCutoff = 0.01 # Loosen the cutoff since we supplied corrected p-values
+)
+
+# Print out plot here
+volcano_plot
 
   
