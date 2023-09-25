@@ -1,3 +1,10 @@
+# This script will map the gene identifiers in the expression matrix from Ensembl IDs to HUGO gene symbols
+# Script from https://alexslemonade.github.io/refinebio-examples/03-rnaseq/gene-id-annotation_rnaseq_01_ensembl.html
+
+# install.packages("BiocManager")
+# install.packages("magrittr")
+# BiocManager::install("org.Hs.eg.db")
+
 library(BiocManager)
 library(magrittr)
 library(org.Hs.eg.db)
