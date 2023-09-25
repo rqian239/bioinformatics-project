@@ -117,6 +117,11 @@ filtered_expression_df <- expression_df %>%
 # round all expression counts
 gene_matrix <- round(filtered_expression_df)
 
+# 0 COUNTS FOR EACH ROW, REPLACE WITH 1
+# I get an error running DESeq2: Error: Every gene contains at least one zero, cannot compute log geometric means
+# A quick solution is to add 1 for every zero count in the data set. This will be 0 once we take the log.
+gene_matrix[gene_matrix == 0] <- 1
+
 # Create a DESeq2DataSet object
 ddset <- DESeqDataSetFromMatrix(
   # Here we supply non-normalized count data
