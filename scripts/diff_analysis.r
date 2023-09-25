@@ -138,11 +138,18 @@ deseq_df <- deseq_results %>%
   # higher expression in RPL10 mutated samples
   dplyr::arrange(dplyr::desc(log2FoldChange))
 
-  head(deseq_df)
+head(deseq_df)
 
 
-  # Plot one gene to show difference
-  plotCounts(ddset, gene = "CHI3L1", intgroup = "psy_disorder")
+# Plot one gene to show difference
+plotCounts(ddset, gene = "SERPINA3", intgroup = "psy_disorder")
+
+
+# Write results to tsv file
+readr::write_tsv(
+deseq_df,
+"./results/SRP073813_diff_expr_results.tsv"
+)
 
 
   
