@@ -23,6 +23,9 @@ GO_results <- enrichGO(gene = genes, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL",
 # Convert results to data.frame
 as.data.frame(GO_results)
 
+write.csv(GO_results, file="./results/GO_results.csv", row.names=FALSE)
+
+
 # Plot the results
 fit <- plot(barplot(GO_results, showCategory = 15))
 
