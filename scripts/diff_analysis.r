@@ -187,8 +187,23 @@ volcano_plot <- EnhancedVolcano::EnhancedVolcano(
 # Print out plot here
 volcano_plot
 
+# Save plot as png
+ggsave(
+  plot = volcano_plot,
+  "./plots/SRP073813_volcano_plot.png"
+)
 
 # Extract differentially expressed genes
 
+# According to the volcano plot, "differentially expressed genes" have a |Log fold change| > 1 and a p-value < 0.01
+filtered_deseq_df <- deseq_df %>%
+  dplyr::filter(abs(log2FoldChange) > 1, padj < 0.01)
 
-  
+
+diff_expressed_genes <- data.frame(filtered_deseq_df$Gene)
+
+# Write results to tsv file
+readr::write_tsv(
+diff_expressed_genes,
+"./results/SRP073813_diff_expressed_gene_list.tsv"
+)
