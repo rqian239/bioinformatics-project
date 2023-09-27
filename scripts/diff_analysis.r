@@ -234,7 +234,7 @@ mean <- as.matrix(diff_expressed_genes$baseMean) #getting mean value for each ge
 colnames(mean)<-"AveExpr"
 
 # Install ComplexHeatmap package
-BiocManager::install("ComplexHeatmap")
+# BiocManager::install("ComplexHeatmap")
 
 # Import packages for heatmap
 library(ComplexHeatmap)
@@ -259,6 +259,15 @@ annotation_df <- metadata %>%
   # data frame match the column names of our `DESeaDataSet` object
   tibble::column_to_rownames("refinebio_accession_code")
 
+# Group all samples by psy_disorder
+annotation_df <- annotation_df %>% arrange(psy_disorder)
+
+sample_col_order <- rownames(annotation_df)
+
+# Reorder mat.scaled by the order of annotation_df (psy_disorder)
+mat.scaled <- mat.scaled[, sample_col_order]
+
+
 # Create annotation object
 anno <- HeatmapAnnotation(df = annotation_df, which = "col", col = list(psy_disorder = c("Control" = "black", "Disorder" = "red")))
 
@@ -268,7 +277,7 @@ ha <- HeatmapAnnotation(summary = anno_summary(gp = gpar(fill = 2),
 
 h1 <- Heatmap(mat.scaled, cluster_rows = F, 
   column_labels = colnames(mat.scaled), name="Z-score",
-  cluster_columns = T, bottom_annotation = anno)
+  cluster_columns = F, bottom_annotation = anno)
 
 h2 <- Heatmap(l2_val, row_labels = diff_expressed_genes$Gene, 
   cluster_rows = F, name="logFC", top_annotation = ha, col = col_logFC,
