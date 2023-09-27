@@ -21,9 +21,9 @@ print(genes)
 GO_results <- enrichGO(gene = genes, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "BP")
 
 # Convert results to data.frame
-as.data.frame(GO_results)
+GO_results_df <- as.data.frame(GO_results)
 
-write.csv(GO_results, file="./results/GO_results.csv", row.names=FALSE)
+write.table(GO_results_df, file = "./results/GO_results.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
 
 
 # Plot the results
