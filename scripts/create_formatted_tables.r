@@ -22,3 +22,10 @@ customGreen = "#71CA97"
 customRed = "#ff7f7f"
 
 # Where the data is!
+data_file_path <- "./results/GO_results.tsv"
+
+# Read in the data
+main_df <- fread(data_file_path, sep = "\t", data.table = FALSE, header = TRUE, stringsAsFactors = FALSE)
+
+# View the table in RStudio, you can export it as an image
+formattable(main_df)
