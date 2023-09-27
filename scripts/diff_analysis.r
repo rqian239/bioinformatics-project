@@ -204,3 +204,73 @@ readr::write_tsv(
 diff_expressed_genes,
 "./results/SRP073813_diff_expressed_genes.tsv"
 )
+
+
+
+# CREATE HEATMAP
+# From https://github.com/mousepixels/sanbomics_scripts/blob/main/tutorial_complex_Heatmap.Rmd
+
+# Order the diff_expressed_genes by log2FoldChange
+diff_expressed_genes <- diff_expressed_genes[order(diff_expressed_genes$log2FoldChange, decreasing = TRUE),]
+
+# Get normalized count data from dds object
+rlog_out <- rlog(ddset, blind = FALSE)
+# vst_out <- vst(ddset, blind = FALSE)
+
+
+# Create matrix from count data and diff expressed genes
+mat <- assay(rlog_out)[diff_expressed_genes$Gene, metadata$refinebio_accession_code]
+colnames(mat) <- metadata$refinebio_accession_code
+base_mean <- rowMeans(mat)
+mat.scaled <- t(apply(mat, 1, scale)) #center and scale each column (Z-score) then transpose
+colnames(mat.scaled)<-colnames(mat)
+
+# Get log2 fold change values
+l2_val <- as.matrix(diff_expressed_genes$log2FoldChange) #getting log2 value for each gene we are keeping
+colnames(l2_val)<-"logFC"
+
+# Get mean values
+mean <- as.matrix(diff_expressed_genes$baseMean) #getting mean value for each gene we are keeping
+colnames(mean)<-"AveExpr"
+
+# Install ComplexHeatmap package
+BiocManager::install("ComplexHeatmap")
+
+# Import packages for heatmap
+library(ComplexHeatmap)
+library(RColorBrewer)
+library(circlize)
+
+#maps values between b/w/r for min and max l2 values
+col_logFC <- colorRamp2(c(min(l2_val),0, max(l2_val)), c("blue", "white", "red")) 
+
+#maps between 0% quantile, and 75% quantile of mean values --- 0, 25, 50, 75, 100
+col_AveExpr <- colorRamp2(c(quantile(mean)[1], quantile(mean)[4]), c("white", "green"))
+
+# Plot the heatmap
+ha <- HeatmapAnnotation(summary = anno_summary(gp = gpar(fill = 2), 
+  height = unit(2, "cm")))
+
+h1 <- Heatmap(mat.scaled, cluster_rows = F, 
+  column_labels = colnames(mat.scaled), name="Z-score",
+  cluster_columns = T)
+
+h2 <- Heatmap(l2_val, row_labels = diff_expressed_genes$Gene, 
+  cluster_rows = F, name="logFC", top_annotation = ha, col = col_logFC,
+  cell_fun = function(j, i, x, y, w, h, col) { # add text to each grid
+  grid.text(round(l2_val[i, j],2), x, y)
+})
+
+h3 <- Heatmap(mean, row_labels = diff_expressed_genes$Gene, 
+  cluster_rows = F, name = "AveExpr", col=col_AveExpr,
+  cell_fun = function(j, i, x, y, w, h, col) { # add text to each grid
+    grid.text(round(mean[i, j],2), x, y)
+})
+
+h<-h1+h2+h3
+h
+
+# Save heatmap as png
+png("./plots/heatmap_v1.png", res = 300, width = 25000, height = 8000)
+print(h)
+dev.off()
