@@ -247,13 +247,28 @@ col_logFC <- colorRamp2(c(min(l2_val),0, max(l2_val)), c("blue", "white", "red")
 #maps between 0% quantile, and 75% quantile of mean values --- 0, 25, 50, 75, 100
 col_AveExpr <- colorRamp2(c(quantile(mean)[1], quantile(mean)[4]), c("white", "green"))
 
+# Let's prepare the annotation for the uncollapsed `DESeqData` set object
+# which will be used to annotate the heatmap
+annotation_df <- metadata %>%
+  # select only the columns we need for annotation
+  dplyr::select(
+    refinebio_accession_code,
+    psy_disorder
+  ) %>%
+  # The `pheatmap()` function requires that the row names of our annotation
+  # data frame match the column names of our `DESeaDataSet` object
+  tibble::column_to_rownames("refinebio_accession_code")
+
+# Create annotation object
+anno <- HeatmapAnnotation(df = annotation_df, which = "col", col = list(psy_disorder = c("Control" = "black", "Disorder" = "red")))
+
 # Plot the heatmap
 ha <- HeatmapAnnotation(summary = anno_summary(gp = gpar(fill = 2), 
   height = unit(2, "cm")))
 
 h1 <- Heatmap(mat.scaled, cluster_rows = F, 
   column_labels = colnames(mat.scaled), name="Z-score",
-  cluster_columns = T)
+  cluster_columns = T, bottom_annotation = anno)
 
 h2 <- Heatmap(l2_val, row_labels = diff_expressed_genes$Gene, 
   cluster_rows = F, name="logFC", top_annotation = ha, col = col_logFC,
