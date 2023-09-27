@@ -214,7 +214,7 @@ diff_expressed_genes,
 diff_expressed_genes <- diff_expressed_genes[order(diff_expressed_genes$log2FoldChange, decreasing = TRUE),]
 
 # Get normalized count data from dds object
-rlog_out <- rlog(ddset, blind = FALSE)
+rlog_out <- rlog(ddset, blind = FALSE)    # TODO: do we use ddset or deseq_object?
 # vst_out <- vst(ddset, blind = FALSE)
 
 
