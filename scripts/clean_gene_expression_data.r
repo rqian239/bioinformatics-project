@@ -21,23 +21,14 @@ gene_expression_data_cleaned <- gene_expression_data[!is.na(gene_expression_data
 metadata_file <- "./data/SRP073813/metadata_SRP073813.tsv"
 metadata <- readr::read_tsv(metadata_file)
 
-# Label psychiatric disorder
-metadata <- metadata %>%
-  dplyr::mutate(psy_disorder = dplyr::case_when(
-    stringr::str_detect(refinebio_title, "_C_") ~ "Control",
-    stringr::str_detect(refinebio_title, "_M_") ~ "Major Depression",
-    stringr::str_detect(refinebio_title, "_B_") ~ "Bipolar Disorder",
-    stringr::str_detect(refinebio_title, "_S_") ~ "Schizophrenia"
-  ))
+# Filter metadata to only include samples from the Anterior Cingulate Cortex (AnCg) from Control and Schizophrenia patients
+selected_samples <- metadata %>%
+  dplyr::filter(refinebio_subject %in% c("ancg_control", "ancg_schizophrenia")) %>%
+  dplyr::select(refinebio_accession_code)
 
-# Label brain region
-metadata <- metadata %>%
-  dplyr::mutate(brain_region = dplyr::case_when(
-    stringr::str_detect(refinebio_title, "AnCg") ~ "Anterior Cingulate Cortex",
-    stringr::str_detect(refinebio_title, "nAcc") ~ "Nucleus Accumbens",
-    stringr::str_detect(refinebio_title, "DLPFC") ~ "Dorsolateral Prefrontal Cortex"
-  ))
+# Filter gene expression data to only include samples from the Anterior Cingulate Cortex (AnCg) from Control and Schizophrenia patients
+final_gene_expression_data <- gene_expression_data_cleaned %>%
+    dplyr::select(first_mapped_hugo, all_of(selected_samples$refinebio_accession_code))
 
-
-# Write the cleaned data to a new file
-write.table(gene_expression_data_cleaned, "SRP073813-HUGO-cleaned.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
+# Write the cleaned/filtered data to a new file
+write.table(final_gene_expression_data, "SRP073813-HUGO-cleaned.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
