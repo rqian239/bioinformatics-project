@@ -16,7 +16,7 @@ gene_expression_data[, (columns_to_remove) := NULL]
 # Remove rows with "NA" HUGO IDs
 gene_expression_data_cleaned <- gene_expression_data[!is.na(gene_expression_data$first_mapped_hugo)]
 
-# Now we will filter the data so that only samples collected from the Anterior Cingulate Cortex (ACC) from Control and Schizophrenia patients are included.
+# Now we will filter the data so that only samples collected from the Anterior Cingulate Cortex (AnCg) from Control and Schizophrenia patients are included.
 
 # Read in metadata TSV file
 metadata_file <- "./data/SRP073813/metadata_SRP073813.tsv"
