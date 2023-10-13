@@ -1,5 +1,5 @@
 # Perform k-means clustering on gene expression data
-# From https://www.youtube.com/watch?v=NKQpVU1LTm8
+# From https://github.com/SpencerPao/Data_Science/blob/main/KMeans/kmeans.R
 
 # install.packages("factoextra")
 
@@ -11,15 +11,11 @@ library(dplyr)
 gene_expression <- readr::read_tsv("./data/SRP073813/SRP073813-HUGO-cleaned-top-5000.tsv")
 
 # Transpose the data
-gene_expression_t <- t(gene_expression)
+gene_expression_t <- as.data.frame(t(gene_expression))
 
 # Make the first row the column names
 colnames(gene_expression_t) <- gene_expression_t[1,]
 gene_expression_t <- gene_expression_t[-1,]
-
-# Convert matrix to data frame
-gene_expression_t <- as.data.frame(gene_expression_t)
-
 
 # Load in metadata
 metadata <- readr::read_tsv("./data/SRP073813/metadata_SRP073813_filtered.tsv") %>% tibble::column_to_rownames("refinebio_accession_code")
@@ -32,4 +28,25 @@ table(sample_labels)
 
 
 # Scale the data
-gene_expression_t_scaled <- scale(gene_expression_t)
+gene_expression_t <- mutate_all(gene_expression_t, function(x) as.numeric(as.character(x)))
+gene_expression_t_scaled <- as.data.frame(scale(gene_expression_t))
+
+# Distance
+gene_expression_t_dist <- dist(gene_expression_t_scaled)
+
+# Calculate how many clusters we should have, using the elbow method
+fviz_nbclust(gene_expression_t_scaled, kmeans, method = "wss") +
+    labs(subtitle = "Elbow method")
+
+# Perform k-means clustering
+k <- 4
+km.out <- kmeans(gene_expression_t_scaled, centers = k, nstart = 50)
+print(km.out)
+
+# Table of cluster and group
+table(sample_labels, km.out$cluster)
+
+# Visualize the clusters
+km.clusters <- km.out$cluster
+rownames(gene_expression_t_scaled) <- paste(sample_labels, 1:dim(gene_expression_t_scaled)[1], sep = "_")
+fviz_cluster(list(data=gene_expression_t_scaled, cluster=km.clusters))
