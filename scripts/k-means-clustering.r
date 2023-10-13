@@ -51,4 +51,4 @@ table(sample_labels, km.out$cluster)
 km.clusters <- km.out$cluster
 gene_expression_t_plot <- gene_expression_t_scaled
 rownames(gene_expression_t_plot) <- paste(sample_labels, 1:dim(gene_expression_t_plot)[1], sep = "_")
-fviz_cluster(list(data=gene_expression_t_scaled, cluster=km.clusters))
+fviz_cluster(list(data=gene_expression_t_plot, cluster=km.clusters))
