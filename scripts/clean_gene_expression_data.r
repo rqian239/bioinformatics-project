@@ -27,6 +27,9 @@ selected_samples <- metadata %>%
   dplyr::filter(refinebio_subject %in% c("ancg_control", "ancg_schizophrenia")) %>%
   dplyr::select(refinebio_accession_code)
 
+filtered_metadata <- metadata %>%
+  dplyr::filter(refinebio_subject %in% c("ancg_control", "ancg_schizophrenia"))
+
 # Filter gene expression data to only include samples from the Anterior Cingulate Cortex (AnCg) from Control and Schizophrenia patients
 final_gene_expression_data <- gene_expression_data_cleaned %>%
     dplyr::select(first_mapped_hugo, all_of(selected_samples$refinebio_accession_code))
@@ -48,3 +51,6 @@ output_df <- as.data.frame(t(apply(final_gene_expression_data, 1, adjust_values)
 
 # Write the cleaned/filtered data to a new file
 write.table(output_df, "SRP073813-HUGO-cleaned.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
+
+# Write filtered metadata to a new file
+write.table(filtered_metadata, "metadata_SRP073813_filtered.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
