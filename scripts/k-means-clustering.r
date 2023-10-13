@@ -27,9 +27,10 @@ sample_labels <- metadata$refinebio_subject
 table(sample_labels)
 
 
-# Scale the data
+# Scale the data (this is not needed anymore since the data has been log-scaled and normalized)
 gene_expression_t <- mutate_all(gene_expression_t, function(x) as.numeric(as.character(x)))
-gene_expression_t_scaled <- as.data.frame(scale(gene_expression_t))
+gene_expression_t_scaled <- gene_expression_t
+# gene_expression_t_scaled <- as.data.frame(scale(gene_expression_t))
 
 # Distance
 gene_expression_t_dist <- dist(gene_expression_t_scaled)
@@ -39,8 +40,8 @@ fviz_nbclust(gene_expression_t_scaled, kmeans, method = "wss") +
     labs(subtitle = "Elbow method")
 
 # Perform k-means clustering
-k <- 4
-km.out <- kmeans(gene_expression_t_scaled, centers = k, nstart = 50)
+k <- 5
+km.out <- kmeans(gene_expression_t_scaled, centers = k, nstart = 55)    # Go through each of the 55 possible starting points
 print(km.out)
 
 # Table of cluster and group
@@ -48,5 +49,6 @@ table(sample_labels, km.out$cluster)
 
 # Visualize the clusters
 km.clusters <- km.out$cluster
-rownames(gene_expression_t_scaled) <- paste(sample_labels, 1:dim(gene_expression_t_scaled)[1], sep = "_")
+gene_expression_t_plot <- gene_expression_t_scaled
+rownames(gene_expression_t_plot) <- paste(sample_labels, 1:dim(gene_expression_t_plot)[1], sep = "_")
 fviz_cluster(list(data=gene_expression_t_scaled, cluster=km.clusters))
