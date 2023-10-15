@@ -55,13 +55,14 @@ fviz_cluster(list(data=gene_expression_t_plot, cluster=km.clusters))
 
 # Write the cluster assignments to a file
 cluster_assignment_results <- data.frame(km.out$cluster)
-colnames(cluster_assignment_results)[1] <- "cluster"
+colnames(cluster_assignment_results)[1] <- "k_cluster"
 
 # Check if metadata and cluster assignments match
 all(rownames(metadata) == rownames(cluster_assignment_results))
 
 # Add psychiatric disorder labels to the cluster assignments
 cluster_assignment_results <- cbind(cluster_assignment_results, disorder_group = metadata$refinebio_subject)
+cluster_assignment_results <- rownames_to_column(cluster_assignment_results, "refinebio_accession_code")
 
 # Write the cluster assignments to a file
-write.table(cluster_assignment_results, "./results/clustering/k-means-cluster-results.tsv", sep = "\t", quote = FALSE, row.names = TRUE)
+readr::write_tsv(cluster_assignment_results, "./results/clustering/k-means-cluster-results.tsv")
