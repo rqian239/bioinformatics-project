@@ -25,4 +25,5 @@ top_X_genes <- sorted_expression_df[1:X, ]
 output_df <- tibble::rownames_to_column(top_X_genes, "first_mapped_hugo")
 
 # Write to a TSV
-write.table(output_df, "SRP073813-HUGO-cleaned-top-5000.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
+tsv_filename <- sprintf("SRP073813-HUGO-cleaned-top-%d.tsv", X)
+write.table(output_df, tsv_filename, sep = "\t", quote = FALSE, row.names = FALSE)
