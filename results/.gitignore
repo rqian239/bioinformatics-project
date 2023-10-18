@@ -1,1 +1,2 @@
-*.tsv
+old-dataset-results/*.tsv
+./*.tsv

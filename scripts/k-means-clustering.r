@@ -62,7 +62,7 @@ all(rownames(metadata) == rownames(cluster_assignment_results))
 
 # Add psychiatric disorder labels to the cluster assignments
 cluster_assignment_results <- cbind(cluster_assignment_results, disorder_group = metadata$refinebio_subject)
-cluster_assignment_results <- rownames_to_column(cluster_assignment_results, "refinebio_accession_code")
+cluster_assignment_results <- tibble::rownames_to_column(cluster_assignment_results, "refinebio_accession_code")
 
 # Write the cluster assignments to a file
 readr::write_tsv(cluster_assignment_results, "./results/clustering/k-means-cluster-results.tsv")
