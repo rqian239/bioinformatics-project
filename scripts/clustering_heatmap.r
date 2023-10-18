@@ -24,8 +24,8 @@ grouping_order <- rownames(clustering_metadata)
 heatmap_df <- expression_df_z[, grouping_order]
 
 # Create annotation object
-anno <- HeatmapAnnotation(df = clustering_metadata, which = "col", 
-    col = list(k_cluster = c("1" = "blue", "2" = "red", "3" = "yellow", "4" = "green", "5" = "purple"), 
+anno <- HeatmapAnnotation(df = clustering_metadata, which = "column", 
+    col = list(cluster = c("1" = "blue", "2" = "red", "3" = "yellow", "4" = "green", "5" = "purple"), 
     disorder_group = c("ancg_control" = "lightcoral", "ancg_schizophrenia" = "cyan")))
 
 # Create Heatmap
