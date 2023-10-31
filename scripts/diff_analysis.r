@@ -24,6 +24,8 @@ metadata_file <- "./data/SRP073813/metadata_SRP073813.tsv"
 metadata <- readr::read_tsv(metadata_file)
 
 # Read in gene expression data
+
+# TODO: Rerun with log-scaled data, fix negative values for rows (add minimum value to each row)
 data_file <- "./data/SRP073813/SRP073813-HUGO-cleaned.tsv"
 expression_df <- readr::read_tsv(data_file) %>% 
   mutate(first_mapped_hugo = make.unique(as.character(first_mapped_hugo))) %>%
@@ -106,6 +108,7 @@ levels(metadata$psy_disorder)
 # Define a minimum counts cutoff and filter the data to include
 # only rows (genes) that have total counts above the cutoff
 
+# TODO: Scale min_counts for number of samples in dataset
 min_counts <- 10
 
 # Filter the data
@@ -120,6 +123,8 @@ gene_matrix <- round(filtered_expression_df)
 # 0 COUNTS FOR EACH ROW, REPLACE WITH 1
 # I get an error running DESeq2: Error: Every gene contains at least one zero, cannot compute log geometric means
 # A quick solution is to add 1 for every zero count in the data set. This will be 0 once we take the log.
+
+# TODO: Add 1 to every value in the matrix
 gene_matrix[gene_matrix == 0] <- 1
 
 # Create a DESeq2DataSet object
@@ -262,6 +267,7 @@ annotation_df <- metadata %>%
 # Group all samples by psy_disorder
 annotation_df <- annotation_df %>% arrange(psy_disorder)
 
+# The rownames of the metadata df (annotation_df) are the columns of the expression matrix
 sample_col_order <- rownames(annotation_df)
 
 # Reorder mat.scaled by the order of annotation_df (psy_disorder)
