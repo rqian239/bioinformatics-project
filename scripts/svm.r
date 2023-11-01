@@ -56,7 +56,6 @@ auc_values <- numeric(num_folds)
 
 for(i in 1:num_folds) {
 
-
   # Get indices for training and testing datasets
   test_indices <- folds[[i]]
   train_indices <- unlist(folds[-i])
@@ -66,7 +65,18 @@ for(i in 1:num_folds) {
   test <- gene_expression_t[test_indices,]
 
   # Train SVM
-  svm_model <- svm(disorder ~ ., data=train, kernel="linear")
+
+#   # LINEAR
+#   svm_model <- svm(disorder ~ ., data=train, kernel="linear")
+
+#   # POLYNOMIAL
+#     svm_model <- svm(disorder ~ ., data=train, kernel="polynomial")
+
+#    # RADIAL (RBF)
+#     svm_model <- svm(disorder ~ ., data=train, kernel="radial")
+
+#   # SIGMOID
+#     svm_model <- svm(disorder ~ ., data=train, kernel="sigmoid")
 
   # Predict on test set
   predictions <- predict(svm_model, test, decision.values=TRUE)
@@ -83,21 +93,31 @@ for(i in 1:num_folds) {
   # Store the AUC value
   auc_values[i] <- auc(roc_obj)
 
-  # Plot ROC curve
-  plot(roc_obj, main=sprintf("ROC Curve for Fold %d", i), col=i)
+#   # Plot ROC curve
+#   plot(roc_obj, main=sprintf("ROC Curve for Fold %d", i), col=i)
 
   # Print AUC
   cat(sprintf("AUC for Fold %d: %f\n", i, auc(roc_obj)))
 
-
 }
 
+average_auc <- mean(auc_values)
+
+# Plot all ROC curves
 if (length(folds) > 1) {
   plot(roc_list[[1]], main="ROC Curves for All Folds")
   for (i in 2:length(folds)) {
     lines(roc_list[[i]], col=i)
   }
 }
+
+# Add a legend
+legend_labels <- sprintf("Fold %d (AUC = %.2f)", 1:length(folds), auc_values)
+legend("bottomright", legend=legend_labels, col=1:length(folds), lty=1)
+
+
+
+
 # # Linear SVM model with 5-fold cross validation
 # svm_model <- svm(disorder ~ ., data=gene_expression_t, cross=5, kernel="linear")
 
