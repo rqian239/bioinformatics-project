@@ -1,7 +1,7 @@
 # Read all gene signatures
 
 gene_sig_10000 <- readr::read_tsv("./results/svm/linear-svm-10000-gene-signatures.tsv")
-gene_sig_5000 <- readr::read_tsv("./results/svm/linear-svm-5000-genes-200-signatures.tsv")
+gene_sig_5000 <- readr::read_tsv("./results/svm/linear-svm-5000-gene-signatures.tsv")
 gene_sig_1000 <- readr::read_tsv("./results/svm/linear-svm-1000-gene-signatures.tsv")
 gene_sig_100 <- readr::read_tsv("./results/svm/linear-svm-100-gene-signatures.tsv")
 gene_sig_10 <- readr::read_tsv("./results/svm/linear-svm-10-gene-signatures.tsv")
