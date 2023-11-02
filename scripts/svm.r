@@ -12,7 +12,10 @@ library(caret)
 
 # DATA FORMATTING
 
-data_filepath <- "./data/SRP073813/SRP073813-HUGO-cleaned-top-5000.tsv"
+# Number of genes to include in the dataset
+num_genes_in_dataset <- 10
+
+data_filepath <- sprintf("./data/SRP073813/SRP073813-HUGO-cleaned-top-%d.tsv", num_genes_in_dataset)
 
 # Read in gene expression data
 gene_expression <- readr::read_tsv(data_filepath)
@@ -149,42 +152,44 @@ legend("bottomright", legend=legend_labels, col=1:length(folds), lty=1)
 all_predictions <- all_predictions %>% arrange(rownames(all_predictions))
 all_predictions <- all_predictions %>%
   tibble::rownames_to_column("Gene")
-readr::write_tsv(all_predictions, "./results/svm/linear-svm-5000-predictions.tsv")
+prediction_output_filepath <- sprintf("./results/svm/linear-svm-%d-predictions.tsv", num_genes_in_dataset)
+readr::write_tsv(all_predictions, prediction_output_filepath)
 
 
 # # ----------------------------------------------------------------------
 
-# # EXTRACT GENE SIGNATURES
+# EXTRACT GENE SIGNATURES
 
-# # Linear SVM model with 5-fold cross validation
-# svm_model <- svm(disorder ~ ., data=gene_expression_t, cross=5, kernel="linear")
+# Linear SVM model with 5-fold cross validation
+svm_model <- svm(disorder ~ ., data=gene_expression_t, cross=5, kernel="linear")
 
 
-# # Extract gene signatures
-# weights <- t(svm_model$coefs) %*% svm_model$SV
-# # Associate weights with gene names
-# gene_weights <- as.data.frame(t(setNames(weights, rownames(gene_expression_t))))
-# # Rename column in gene_weights
-# colnames(gene_weights)[colnames(gene_weights) == "V1"] <- "weight"
-# # Absolute value all weights
-# gene_weights$weight <- abs(gene_weights$weight)
-# # Sort by weight
-# gene_weights_sorted <- gene_weights %>% arrange(desc(weight))
-# # Convert rownames to column
-# gene_weights_sorted <- gene_weights_sorted %>%
-#   tibble::rownames_to_column("Gene")
+# Extract gene signatures
+weights <- t(svm_model$coefs) %*% svm_model$SV
+# Associate weights with gene names
+gene_weights <- as.data.frame(t(setNames(weights, colnames(gene_expression_t)[1:num_genes_in_dataset])))
+# Rename column in gene_weights
+colnames(gene_weights)[colnames(gene_weights) == "V1"] <- "weight"
+# Absolute value all weights
+gene_weights$weight <- abs(gene_weights$weight)
+# Sort by weight
+gene_weights_sorted <- gene_weights %>% arrange(desc(weight))
+# Convert rownames to column
+gene_weights_sorted <- gene_weights_sorted %>%
+  tibble::rownames_to_column("Gene")
 
-# # Plot the sorted weights
-# plot(gene_weights_sorted$weight, ylab="Values", xlab="Index", main="Plot of Values", pch=16, cex=0.5)
+# Plot the sorted weights
+plot(gene_weights_sorted$weight, ylab="Values", xlab="Index", main="Plot of Values", pch=16, cex=0.5)
 
-# # # Filter for top X genes
-# top_x_genes <- 200
-# gene_weights_sorted <- gene_weights_sorted[1:top_x_genes,]
-# # Get gene names
-# gene_signatures <- gene_weights_sorted$Gene
+# # Filter for top X genes
+top_x_genes <- ifelse(num_genes_in_dataset < 200, num_genes_in_dataset, 200)
+gene_weights_sorted <- gene_weights_sorted[1:top_x_genes,]
+# Get gene names
+gene_signatures <- gene_weights_sorted$Gene
 
-# # Write gene signatures to file
-# readr::write_tsv(as.data.frame(gene_signatures), "./results/svm/linear-svm-5000-genes-200-signatures.tsv")
+# Write gene signatures to file
+gene_signatures_output_filepath <- sprintf("./results/svm/linear-svm-%d-gene-signatures.tsv", num_genes_in_dataset)
+readr::write_tsv(as.data.frame(gene_signatures), gene_signatures_output_filepath)
 
 
 # # ----------------------------------------------------------------------
