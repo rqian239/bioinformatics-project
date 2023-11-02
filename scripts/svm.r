@@ -12,7 +12,10 @@ library(caret)
 
 # DATA FORMATTING
 
-data_filepath <- "./data/SRP073813/SRP073813-HUGO-cleaned-top-5000.tsv"
+# Number of genes to include in the dataset
+num_genes_in_dataset <- 10
+
+data_filepath <- sprintf("./data/SRP073813/SRP073813-HUGO-cleaned-top-%d.tsv", num_genes_in_dataset)
 
 # Read in gene expression data
 gene_expression <- readr::read_tsv(data_filepath)
@@ -50,9 +53,15 @@ roc_list <- list()
 # AUC values for each fold
 auc_values <- numeric(num_folds)
 
+# All predictions
+all_predictions <- data.frame()
+
+# Create total confusion matrix
+total_confusion_matrix <- matrix(0, nrow=2, ncol=2)
+
 # ----------------------------------------------------------------------
 
-## SVM
+## SVM with 5-fold cross validation
 
 for(i in 1:num_folds) {
 
@@ -66,8 +75,8 @@ for(i in 1:num_folds) {
 
   # Train SVM
 
-#   # LINEAR
-#   svm_model <- svm(disorder ~ ., data=train, kernel="linear")
+  # LINEAR
+  svm_model <- svm(disorder ~ ., data=train, kernel="linear")
 
 #   # POLYNOMIAL
 #     svm_model <- svm(disorder ~ ., data=train, kernel="polynomial")
@@ -99,9 +108,33 @@ for(i in 1:num_folds) {
   # Print AUC
   cat(sprintf("AUC for Fold %d: %f\n", i, auc(roc_obj)))
 
+  # Create a confusion matrix
+    confusion_matrix <- table(test$disorder, predictions)
+    print(confusion_matrix)
+    total_confusion_matrix <- total_confusion_matrix + confusion_matrix
+
+  # Print out predictions
+  predictions_df <- as.data.frame(predictions)
+  all_predictions <- rbind(all_predictions, predictions_df)
+
 }
 
+# Print out total confusion matrix
+cat("Total Confusion Matrix:\n")
+print(total_confusion_matrix)
+
+# Calculate average AUC of all trials
 average_auc <- mean(auc_values)
+
+# Calculate precision, recall, and F1 for predicting positive class (schizophrenia)
+positive_precision <- total_confusion_matrix[2,2] / (total_confusion_matrix[2,2] + total_confusion_matrix[1,2])
+positive_recall <- total_confusion_matrix[2,2] / (total_confusion_matrix[2,2] + total_confusion_matrix[2,1])
+positive_f1 <- 2 * (positive_precision * positive_recall) / (positive_precision + positive_recall)
+
+# Calculate precision, recall, and F1 for predicting negative class (control)
+negative_precision <- total_confusion_matrix[1,1] / (total_confusion_matrix[1,1] + total_confusion_matrix[2,1])
+negative_recall <- total_confusion_matrix[1,1] / (total_confusion_matrix[1,1] + total_confusion_matrix[1,2])
+negative_f1 <- 2 * (negative_precision * negative_recall) / (negative_precision + negative_recall)
 
 # Plot all ROC curves
 if (length(folds) > 1) {
@@ -115,24 +148,51 @@ if (length(folds) > 1) {
 legend_labels <- sprintf("Fold %d (AUC = %.2f)", 1:length(folds), auc_values)
 legend("bottomright", legend=legend_labels, col=1:length(folds), lty=1)
 
+# Arrange predictions by sample ID and write predictions to file
+all_predictions <- all_predictions %>% arrange(rownames(all_predictions))
+all_predictions <- all_predictions %>%
+  tibble::rownames_to_column("Gene")
+prediction_output_filepath <- sprintf("./results/svm/linear-svm-%d-predictions.tsv", num_genes_in_dataset)
+readr::write_tsv(all_predictions, prediction_output_filepath)
 
 
+# # ----------------------------------------------------------------------
 
-# # Linear SVM model with 5-fold cross validation
-# svm_model <- svm(disorder ~ ., data=gene_expression_t, cross=5, kernel="linear")
+# EXTRACT GENE SIGNATURES
+
+# Linear SVM model with 5-fold cross validation
+svm_model <- svm(disorder ~ ., data=gene_expression_t, cross=5, kernel="linear")
 
 
-# # Extract gene signatures
-# weights <- t(svm_model$coefs) %*% svm_model$SV
-# # Associate weights with gene names
-# gene_weights <- as.data.frame(t(setNames(weights, rownames(gene_expression_t))))
-# # Rename column in gene_weights
-# colnames(gene_weights)[colnames(gene_weights) == "V1"] <- "weight"
-# # Absolute value all weights
-# gene_weights$weight <- abs(gene_weights$weight)
-# # Sort by weight
-# gene_weights_sorted <- gene_weights %>% arrange(desc(weight))
+# Extract gene signatures
+weights <- t(svm_model$coefs) %*% svm_model$SV
+# Associate weights with gene names
+gene_weights <- as.data.frame(t(setNames(weights, colnames(gene_expression_t)[1:num_genes_in_dataset])))
+# Rename column in gene_weights
+colnames(gene_weights)[colnames(gene_weights) == "V1"] <- "weight"
+# Absolute value all weights
+gene_weights$weight <- abs(gene_weights$weight)
+# Sort by weight
+gene_weights_sorted <- gene_weights %>% arrange(desc(weight))
+# Convert rownames to column
+gene_weights_sorted <- gene_weights_sorted %>%
+  tibble::rownames_to_column("Gene")
 
+# Plot the sorted weights
+plot(gene_weights_sorted$weight, ylab="Values", xlab="Index", main="Plot of Values", pch=16, cex=0.5)
+
+# # Filter for top X genes
+top_x_genes <- ifelse(num_genes_in_dataset < 200, num_genes_in_dataset, 200)
+gene_weights_sorted <- gene_weights_sorted[1:top_x_genes,]
+# Get gene names
+gene_signatures <- gene_weights_sorted$Gene
+
+# Write gene signatures to file
+gene_signatures_output_filepath <- sprintf("./results/svm/linear-svm-%d-gene-signatures.tsv", num_genes_in_dataset)
+readr::write_tsv(as.data.frame(gene_signatures), gene_signatures_output_filepath)
+
+
+# # ----------------------------------------------------------------------
 
 # # Compute the area under the ROC curve
 # decision_values <- predict(svm_model, gene_expression_t, decision.values=TRUE)
