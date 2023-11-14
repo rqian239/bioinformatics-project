@@ -20,16 +20,19 @@ library(dplyr)
 set.seed(12345)
 
 # Read in metadata TSV file
-metadata_file <- "./data/SRP073813/metadata_SRP073813.tsv"
+metadata_file <- "./data/SRP073813/metadata_SRP073813_filtered.tsv"
 metadata <- readr::read_tsv(metadata_file)
 
 # Read in gene expression data
 
-# TODO: Rerun with log-scaled data, fix negative values for rows (add minimum value to each row)
-data_file <- "./data/SRP073813/SRP073813-HUGO-cleaned.tsv"
+# Load in the gene data
+data_file <- "./data/SRP073813/non_normalized/SRP073813-HUGO-cleaned.tsv"
 expression_df <- readr::read_tsv(data_file) %>% 
   mutate(first_mapped_hugo = make.unique(as.character(first_mapped_hugo))) %>%
   tibble::column_to_rownames("first_mapped_hugo")
+
+# Make data numerics
+expression_df <- mutate_all(expression_df, function(x) as.numeric(as.character(x)))
 
 # Note: Duplicate gene names were found in the data set. Duplicates were renamed with make.unique(), a function that appends a suffix to each duplicate.
 
@@ -66,16 +69,16 @@ head(metadata$refinebio_title)
 # Comparing control vs any disorder
 metadata <- metadata %>%
   dplyr::mutate(psy_disorder = dplyr::case_when(
-    stringr::str_detect(refinebio_title, "_C_") ~ "Control",
-    TRUE ~ "Disorder"
+    stringr::str_detect(refinebio_subject, "ancg_control") ~ "Control",
+    stringr::str_detect(refinebio_subject, "ancg_schizophrenia") ~ "Schizophrenia",
+    TRUE ~ "ERROR"
   ))
 
 # Label brain region using the metadata
 metadata <- metadata %>%
   dplyr::mutate(brain_region = dplyr::case_when(
     stringr::str_detect(refinebio_title, "AnCg") ~ "Anterior Cingulate Cortex",
-    stringr::str_detect(refinebio_title, "nAcc") ~ "Nucleus Accumbens",
-    stringr::str_detect(refinebio_title, "DLPFC") ~ "Dorsolateral Prefrontal Cortex"
+    TRUE ~ "ERROR"
   ))
 
 # Let's take a look at the original metadata column's info
@@ -99,7 +102,7 @@ str(metadata$psy_disorder)
 metadata <- metadata %>%
   dplyr::mutate(
     # Here we define the values our factor variable can have and their order.
-    psy_disorder = factor(psy_disorder, levels = c("Control", "Disorder"))
+    psy_disorder = factor(psy_disorder, levels = c("Control", "Schizophrenia"))
   )
 
 # Check the levels
@@ -108,8 +111,8 @@ levels(metadata$psy_disorder)
 # Define a minimum counts cutoff and filter the data to include
 # only rows (genes) that have total counts above the cutoff
 
-# TODO: Scale min_counts for number of samples in dataset
-min_counts <- 10
+# Scale min_counts for number of samples in dataset
+min_counts <- (10 / 6) * ncol(expression_df)
 
 # Filter the data
 filtered_expression_df <- expression_df %>%
@@ -124,7 +127,7 @@ gene_matrix <- round(filtered_expression_df)
 # I get an error running DESeq2: Error: Every gene contains at least one zero, cannot compute log geometric means
 # A quick solution is to add 1 for every zero count in the data set. This will be 0 once we take the log.
 
-# TODO: Add 1 to every value in the matrix
+# Replace all 0s with 1s
 gene_matrix[gene_matrix == 0] <- 1
 
 # Create a DESeq2DataSet object
@@ -175,7 +178,7 @@ plotCounts(ddset, gene = "SERPINA3", intgroup = "psy_disorder")
 # Write results to tsv file
 readr::write_tsv(
 deseq_df,
-"./results/SRP073813_diff_expr_results.tsv"
+"./results/diff_expression/diff_expression_results.tsv"
 )
 
 
@@ -195,7 +198,7 @@ volcano_plot
 # Save plot as png
 ggsave(
   plot = volcano_plot,
-  "./plots/SRP073813_volcano_plot.png"
+  "./plots/diff_expression/SRP073813_volcano_plot.png"
 )
 
 # Extract differentially expressed genes
@@ -207,7 +210,7 @@ diff_expressed_genes <- deseq_df %>%
 # Write results to tsv file
 readr::write_tsv(
 diff_expressed_genes,
-"./results/SRP073813_diff_expressed_genes.tsv"
+"./results/diff_expression/SRP073813_diff_expressed_genes.tsv"
 )
 
 
