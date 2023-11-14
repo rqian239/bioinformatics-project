@@ -222,7 +222,7 @@ diff_expressed_genes,
 diff_expressed_genes <- diff_expressed_genes[order(diff_expressed_genes$log2FoldChange, decreasing = TRUE),]
 
 # Get normalized count data from dds object
-rlog_out <- rlog(ddset, blind = FALSE)    # TODO: do we use ddset or deseq_object?
+rlog_out <- rlog(deseq_object, blind = FALSE)    # TODO: do we use ddset or deseq_object?
 # vst_out <- vst(ddset, blind = FALSE)
 
 
@@ -278,7 +278,7 @@ mat.scaled <- mat.scaled[, sample_col_order]
 
 
 # Create annotation object
-anno <- HeatmapAnnotation(df = annotation_df, which = "col", col = list(psy_disorder = c("Control" = "black", "Disorder" = "red")))
+anno <- HeatmapAnnotation(df = annotation_df, which = "col", col = list(psy_disorder = c("Control" = "black", "Schizophrenia" = "red")))
 
 # Plot the heatmap
 ha <- HeatmapAnnotation(summary = anno_summary(gp = gpar(fill = 2), 
@@ -304,6 +304,6 @@ h<-h1+h2+h3
 h
 
 # Save heatmap as png
-png("./plots/heatmap_v1.png", res = 300, width = 25000, height = 8000)
+png("./plots/diff_expression/heatmap_v1.png", res = 300, width = 8000, height = 6000)
 print(h)
 dev.off()
