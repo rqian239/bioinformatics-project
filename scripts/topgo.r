@@ -3,14 +3,16 @@ library(org.Hs.eg.db)
 library(grid)
 library(gridExtra)
 library(insight)
+library(Rgraphviz)
 
-df <- readr::read_tsv("./SRP073813_diff_expressed_genes.tsv")
+df <- readr::read_tsv("./results/diff_expression/diff_expression_results.tsv")
 
 gene_list <- df$padj
 names(gene_list) <- df$Gene
 
+
 topDiffGenes <- function (allscore) {
-    return(allscore > 0.00)
+    return(allscore < 0.01)
 }
 
 sampleGOdata <- new("topGOdata", description = "simple", ontology = "BP",
@@ -47,7 +49,7 @@ colMap <- function(x) {
 
 gCol <- colMap(gstat$Significant)
 
-pdf('topgo_seq')
+ pdf('topgo_seq')
 plot(pValue.classic, pValue.elim, xlab = "p-value classic",
         ylab = "p-value elim", pch = 19, cex = gSize, col = gCol)
 dev.off()

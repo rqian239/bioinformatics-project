@@ -7,7 +7,7 @@ library(org.Hs.eg.db)
 library(ggplot2)
 
 # Get the significantly differentially expressed genes
-diff_expressed_genes <- readr::read_tsv("./results/SRP073813_diff_expressed_genes.tsv")
+diff_expressed_genes <- readr::read_tsv("./results/diff_expression_results.tsv")
 
 # Get gene names
 genes <- setNames(diff_expressed_genes$padj, diff_expressed_genes$Gene)
