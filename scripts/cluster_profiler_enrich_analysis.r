@@ -10,7 +10,7 @@ library(org.Hs.eg.db)
 library(AnnotationDbi)
 
 # Get the significantly differentially expressed genes
-diff_expressed_genes <- readr::read_tsv("./results/SRP073813_diff_expressed_genes.tsv")
+diff_expressed_genes <- readr::read_tsv("./results/diff_expression/SRP073813_diff_expressed_genes.tsv")
 
 # Get gene names
 genes <- diff_expressed_genes$Gene
@@ -23,13 +23,16 @@ GO_results <- enrichGO(gene = genes, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL",
 # Convert results to data.frame
 GO_results_df <- as.data.frame(GO_results)
 
-write.table(GO_results_df, file = "./results/GO_results.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+# Order results by p-value
+GO_results_df <- GO_results_df %>% arrange(pvalue)
+
+write.table(GO_results_df, file = "./results/diff_expression/clust_profiler_GO_results.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
 
 
 # Plot the results
 fit <- plot(barplot(GO_results, showCategory = 15))
 
-png("./plots/cluster_profiler.png", res = 250, width = 1400, height = 1800)
+png("./plots/diff_expression/cluster_profiler.png", res = 250, width = 1400, height = 1800)
 print(fit)
 dev.off()
 
