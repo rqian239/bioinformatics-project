@@ -3,7 +3,7 @@ library(ggplot2)
 library(ComplexHeatmap)
 library(dplyr)
 
-top_variable_genes <- 100
+top_variable_genes <- 200
 
 gene_metadata <- read.csv(file = "./data/SRP073813/gene_metadata.csv")
 gene_metadata <- gene_metadata[-1, ]
@@ -46,8 +46,8 @@ anno <- HeatmapAnnotation(
 
 # Create Heatmap
 # Heatmap(heatmap, cluster_rows = T, cluster_columns = F, name = "Z-scores", bottom_annotation = anno, column_title = "Samples", row_title = "Genes")
-filename <- sprintf("./hcluster/Hierarchical_Heatmap_%d.pdf", top_variable_genes)
-pdf(filename, width = 9, height = 16)
+filename <- sprintf("./hcluster/Hierarchical_Heatmap_%d.png", top_variable_genes)
+png(filename, width = 3840, height = 2160)
 Heatmap(t(heatmap), cluster_rows = T, cluster_columns = F, name = "Z-scores", bottom_annotation = anno, column_title = "Samples", row_title = "Genes")
 
 dev.off()

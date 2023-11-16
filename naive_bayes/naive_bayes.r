@@ -11,7 +11,7 @@ library(tidymodels)
 library(vip)
 
 
-gene_no <- 10000
+gene_no <- 5000
 gene_metadata <- read.csv(file = "./data//SRP073813/gene_metadata.csv")
 gene_metadata <- gene_metadata[-1, ]
 gene_metadata <- gene_metadata %>% filter(refinebio_subject %in% c("ancg_control", "ancg_schizophrenia"))
@@ -50,11 +50,7 @@ extract <- function(x) {
     extract_fit_parsnip(x)
 }
 
-
-
 results <- fit_resamples(nb_model, gene_recipe, cross_validation, control = control_resamples(save_pred = TRUE, extract = extract))
 
-metrics <- collect_metrics(results, summarize = FALSE)
-
-
-extract_results <- results$.extracts[[1]]$.extracts[[1]]
+metrics <- collect_metrics(results, summarize = TRUE)
+metrics
